@@ -2,8 +2,8 @@ var app_info        = require('./package.json');        //package to make module
 var fs              = require('fs');                    //give access to files to avoid posting your API key and client-secret (google)
 var readline        = require('readline');              //needed for google-Auth
 var google          = require('googleapis');            //google api module
-var gooogleAuth     = require('google-auth-library');   //google authentication module to use your own gmail account
-var Airtable        = require('airtable');              //airtable api to access the database
+var googleAuth     = require('google-auth-library');   //google authentication module to use your own gmail account
+//var Airtable        = require('airtable');              //airtable api to access the database
 
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/gmail-nodejs-reminderBot.json
@@ -21,7 +21,7 @@ fs.readFile('client_secret.json', function processClientSecrets(err, content) {
   }
   // Authorize a client with the loaded credentials, then call the
   // Gmail API.
-  authorize(JSON.parse(content), listLabels);
+  authorize(JSON.parse(content), sendMessage);
 });
 
 /**
@@ -98,30 +98,35 @@ function storeToken(token) {
   console.log('Token stored to ' + TOKEN_PATH);
 }
 
-/**
- * Lists the labels in the user's account.
- *
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- */
-function listLabels(auth) {
-  var gmail = google.gmail('v1');
-  gmail.users.labels.list({
-    auth: auth,
-    userId: 'me',
-  }, function(err, response) {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      return;
-    }
-    var labels = response.labels;
-    if (labels.length == 0) {
-      console.log('No labels found.');
-    } else {
-      console.log('Labels:');
-      for (var i = 0; i < labels.length; i++) {
-        var label = labels[i];
-        console.log('- %s', label.name);
-      }
-    }
-  });
+function makeBody(to, from, subject, message) {
+    var str = ["Content-Type: text/plain; charset=\"UTF-8\"\n",
+        "MIME-Version: 1.0\n",
+        "Content-Transfer-Encoding: 7bit\n",
+        "to: ", to, "\n",
+        "from: ", from, "\n",
+        "subject: ", subject, "\n\n",
+        message
+    ].join('');
+
+    var encodedMail = new Buffer(str).toString("base64").replace(/\+/g, '-').replace(/\//g, '_');
+        return encodedMail;
+}
+
+function sendMessage(auth) {
+    var gmail = google.gmail('v1');
+    var raw = makeBody('thefactory@mcgilleus.ca', 'thefactory@mcgilleus.ca', 'test subject', 'test message\n the message has sent');
+    gmail.users.messages.send({
+        auth: auth,
+        userId: 'me',
+        resource: {
+            raw: raw
+        }
+    }, function(err, res) {
+        if(err){
+            console.log(err);
+            return;
+        }else{
+            console.log(res);
+        }
+    });
 }
