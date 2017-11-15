@@ -1,0 +1,18 @@
+# no incomplete file and useless files for the user
+dev/
+bin/
+
+# Node stuff
+node_modules/
+
+# The private stuff
+data/
+
+# logs
+logs/
+log/
+*.log
+
+# temp stuff
+tmp/
+*.tmp
