@@ -8,6 +8,7 @@ node_modules/
 # The private stuff
 data/
 client_secret.json
+AirtableAPIkey.key
 
 # logs
 logs/

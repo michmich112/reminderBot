@@ -2,8 +2,8 @@ var app_info        = require('./package.json');        //package to make module
 var fs              = require('fs');                    //give access to files to avoid posting your API key and client-secret (google)
 var readline        = require('readline');              //needed for google-Auth
 var google          = require('googleapis');            //google api module
-var googleAuth     = require('google-auth-library');   //google authentication module to use your own gmail account
-//var Airtable        = require('airtable');              //airtable api to access the database
+var googleAuth     = require('google-auth-library');    //google authentication module to use your own gmail account
+var Airtable        = require('airtable');              //airtable api to access the database
 
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/gmail-nodejs-reminderBot.json
@@ -11,6 +11,8 @@ var SCOPES = ['https://mail.google.com/','https://www.googleapis.com/auth/gmail.
 var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'gmail-nodejs-reminderBot.json';
+
+
 
 // Load client secrets from a local file.
 fs.readFile('client_secret.json', function processClientSecrets(err, content) {
