@@ -4,7 +4,7 @@
     "description": "Sends automated responses to remind people to return what they have rented",
     "private": true,
     "scripts": {
-        "start": "node AirtableApp.js",
+        "start": "node bot.js",
         "test": "faucet"
     },
     "keywords": [
