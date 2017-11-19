@@ -17,8 +17,8 @@ var TOKEN_PATH = TOKEN_DIR + 'gmail-nodejs-reminderBot.json';
 function authenticateAndSend(to, from, subject, message){
   fs.readFile('client_secret.json', function processClientSecrets(err, content) { // Load client secrets from a local file.
     if (err) {
-      console.log('Error loading client secret file: ' + err);
-      console.log('Make sure you downloaded the correct secret file and you renamed it to client_secret.json');
+      console.log('[ERROR] Error loading client secret file: ' + err);
+      console.log('        Make sure you downloaded the correct secret file and you renamed it to client_secret.json');
       return;
     }
     // Authorize a client with the loaded credentials, then call the
@@ -71,8 +71,10 @@ function authorize(credentials, callback) {
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, function(err, token) {
     if (err) {
+      console.log("[WARNING] Authentication Token not yet created. Creating Now.");
       getNewToken(oauth2Client, callback);
     } else {
+      console.log("[SUCCESS] Authentication Token already created on system.");
       oauth2Client.credentials = JSON.parse(token);
       callback(oauth2Client);
     }
@@ -94,9 +96,10 @@ function getNewToken(oauth2Client, callback) {
     rl.close();
     oauth2Client.getToken(code, function(err, token) {
       if (err) {
-        console.log('Error while trying to retrieve access token', err);
+        console.log('[ERROR] Error while trying to retrieve access token! ', err);
         return;
       }
+      console.log('[SUCCESS] Successfully retrieved access token');
       oauth2Client.credentials = token;
       storeToken(token);
       callback(oauth2Client);
@@ -114,7 +117,7 @@ function storeToken(token) {
     }
   }
   fs.writeFile(TOKEN_PATH, JSON.stringify(token));
-  console.log('Token stored to ' + TOKEN_PATH);
+  console.log('[SUCCESS] Token stored to ' + TOKEN_PATH);
 }
 
 function makeBody(to, from, subject, message) {
