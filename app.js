@@ -55,7 +55,7 @@ fs.stat(LOG_PATH+LOG_FILE, function(err, stat){
 
 
 //---> Google API authentication
-function authenticateAndSend(to, from, subject, message){
+function authenticateAndSend(to, from, subject, message, data){
   fs.readFile('client_secret.json', function processClientSecrets(err, content) { // Load client secrets from a local file.
     if (err) {
       displayInfo('[ERROR] Error loading client secret file: ' + err);
@@ -66,7 +66,7 @@ function authenticateAndSend(to, from, subject, message){
     // Gmail API.
     authorize(JSON.parse(content), function (auth) {
       var gmail = google.gmail('v1');
-      var raw = makeBody('thefactory@mcgilleus.ca', 'thefactory@mcgilleus.ca', subject, message);
+      var raw = makeBody('thefactory@mcgilleus.ca', 'thefactory@mcgilleus.ca', subject, message); //Change this when done to send correct e-mails
       gmail.users.messages.send({
           auth: auth,
           userId: 'me',
@@ -75,10 +75,10 @@ function authenticateAndSend(to, from, subject, message){
           }
       }, function(err, res) {
           if(err){
-              displayInfo(err);
+              displayInfo('[ERROR] Mail failed to send to '+data.Name+' at '+data.Email+'. Details: '+err);
               return;
           }else{
-              displayInfo('[SUCCESS] Mail Successfully sent. Mail id: '+res.id);
+              displayInfo('[SUCCESS] Mail Successfully sent to '+data.Email+'. Mail id: '+res.id);
           }
       });
   });
@@ -212,7 +212,8 @@ function addObjects(partA,partB,data){ //adding the Equipment rented to the e-ma
   var obj = data.Object;
   if(obj.length == 0){
       var message = partA + partB;
-      authenticateAndSend('test','test','Rental Equipment Overdue', data.Email + message)
+      displayInfo('Attempting to send an e-mail to '+data.Name+' at '+data.Email);
+      authenticateAndSend('test','test','Rental Equipment Overdue', data.Email + message,data) //remode data.Email when ready to send correct e-mails
   }else{
       base('Rental Inventory').find(obj.shift(),function(err, object){
           //just to have nice commas
