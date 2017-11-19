@@ -1,23 +1,24 @@
 var Airtable = require('airtable');
 var fs = require('fs');
-var base = undefined;
-fs.readFile('AirtableAPIkey.key', function conf(err,key){
+
+//if needed base can be global and would mean that you wouldn't need to pass it as an argument everytime
+//var base = undefined;
+
+fs.readFile('AirtableAPIkey.key', function conf(err,key){ //create a file AirtableAPIkey.key
     Airtable.configure({
         endpointUrl: 'https://api.airtable.com',
         apiKey: key
     });
-    base = Airtable.base('appGh7ESCOFPw5h8R');
+    base = Airtable.base('appGh7ESCOFPw5h8R'); //this is the base ID of your airtable Base
     
     base('Rental Sign Out').select({
-        // Selecting the first 3 records in Main View:
-        //maxRecords: 3,
         view: "Main View"
     }).eachPage(function page(records){
-        test1(base,records,sendMessages);
+        overdue(base,records,sendMessages);
     });
 });
 
-function test1(base,records,callback){
+function overdue(base,records,callback){
     var people = [];
     records.forEach(function(record) {
         if(record.get('Due?')=="⏰OVERDUE⏰"){
@@ -28,13 +29,10 @@ function test1(base,records,callback){
             }
         }
     });
-    //console.log(people);
     callback(base,people);
 }
 
-function sendMessages(base,names){ //returns {to: string, message: string}
-    //will need name,due_date, object(s) as parameters for a complete e-mail
-    //console.log('hi');
+function sendMessages(base,names){ //Constructs and sends the message
     names.forEach(function(value){
         console.log(value);
         var person = base('Members').find(value.Name,(function(err, record){
@@ -42,37 +40,30 @@ function sendMessages(base,names){ //returns {to: string, message: string}
             //console.log("in");
             value.Name = record.get('Name');
             value.Email = record.get('Email');
-            make(base,value);
-    }));});
+            constructMessage(base,value);
+        }));
+    });
 }
 
-function getObjects(base,data){
-    for(var i=0;i<data.Objects.length;i++){
-        //need to make sure that the callback is executed first
-    }
-}
-
-function make(base,data){
-    var partA = "Hi " + data.Name + "this is The Factory. The Following item(s) that you have rented are now overdue: ";
+function constructMessage(base,data){ //construct the message
+    var partA = "Hi " + data.Name + ",\nThis is The Factory. The Following item(s) that you have rented are now overdue: ";
     var partB = " (due on " + data.Due + " ). Please return it or reply to this message if you want to continue using it.\nNote that due to limited stock we may ask you to bring it back regardless if other people wish to use it.\nBest,\nThe Factory Management Team";
-    //console.log(partA);
-    //console.log(data.Object);
-    construct(partA,partB,data.Object);
+    addObjects(partA,partB,data.Object);
 }
 
-function construct(partA,partB,objs){
+function addObjects(partA,partB,objs){ //adding the Equipment rented to the e-mail
     if(objs.length == 0){
-        console.log(partA + partB);
+        var message = partA + partB;
+        console.log(message); //Change this to do what you want with the message
     }else{
-        //console.log(objs.shift());
         base('Rental Inventory').find(objs.shift(),function(err, object){
-            //console.log(obj);
-            construct(partA+", "+object.get('Name'),partB,objs);
+            //just to have nice commas
+            if(obj.length == 0){
+                addObjects(partA+" "+object.get('Name')+",",partB,objs);
+            }else{
+                addObjects(partA+" "+object.get('Name')+",",partB,objs);
+            }
         })
     }
 }
 
-function makeMessage(data){ //didnt need to create a function but makes this a bit more readable
-    mess = ("Hi " + data.name + ",\nThis is The Factory. The item you leased from us is now overdue :( please return it or reply to this message if you want to continue using it.\nNote that due to limited stock we may ask you to bring it back regardless if other people wish to use it.\nBest,\nThe Factory Management Team");
-    return {to: data.email , message: mess};
-}
