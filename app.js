@@ -14,8 +14,9 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
 var TOKEN_PATH = TOKEN_DIR + 'gmail-nodejs-reminderBot.json';
 
 //Path & info for log files
-var LOG_PATH = ".logs/"
-var LOG_FILE = "mainLog.log"
+var LOG_PATH = ".logs/";
+var LOG_FILE = "mainLog.log";
+var LOG_LAST_USE = "lastUse.log";
 
 //function to add line to log (Async operation)
 function addToLog(message){
@@ -40,19 +41,6 @@ function displayError(err){
   addToLog(err);
   console.error(err);
 }
-
-//Add to log that you started and check if log exists
-fs.stat(LOG_PATH+LOG_FILE, function(err, stat){
-  if(err == null){
-    addToLog('Starting up reminderbot.');
-  }else if(err.code == 'ENOENT') {
-    // file does not exist
-    fs.writeFile(LOG_PATH+LOG_FILE, '');
-} else {
-    console.log('[ERROR] Some other error: ', err.code);
-}
-});
-
 
 //---> Google API authentication
 function authenticateAndSend(to, from, subject, message, data){

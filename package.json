@@ -4,8 +4,7 @@
     "description": "Sends automated responses to remind people to return what they have rented",
     "private": true,
     "scripts": {
-        "auth": "node authenticate.js",
-        "start": "node app.js",
+        "start": "node authenticate && node app.js",
         "test": "faucet"
     },
     "keywords": [

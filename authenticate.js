@@ -2,7 +2,8 @@ var app_info        = require('./package.json');
 var fs              = require('fs');                    //give access to files to avoid posting your API key and client-secret (google)
 var readline        = require('readline');              //needed for google-Auth
 var google          = require('googleapis');            //google api module
-var googleAuth     = require('google-auth-library');    //google authentication module to use your own gmail account
+var googleAuth      = require('google-auth-library');    //google authentication module to use your own gmail account
+var date            = require('date-and-time');
 
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/gmail-nodejs-reminderBot.json
@@ -12,19 +13,68 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'gmail-nodejs-reminderBot.json';
 
+//Path & info for log files
+var LOG_PATH = ".logs/";
+var LOG_FILE = "mainLog.log";
+var LOG_LAST_USE = "lastUse.log";
+
+//function to add line to log (Async operation)
+function addToLog(message){
+  var now = new Date();
+  try{
+    fs.appendFile(LOG_PATH + LOG_FILE, '[' + date.format(now, 'YYYY/MM/DD HH:mm:ss:SSS') +']-> ' + message+'\n', function (err){
+      if(err){console.error(err); return(err);}
+      //we could add a console output here but it would only add too much info on the terminal
+    });
+  }catch(err){
+    throw(err);
+  }
+}
+
+//Making sure that what is displayed goes into the log
+function displayInfo(info){
+  addToLog(info);
+  console.log(info);
+}
+
+//create dir for logs and file for logs
+console.log('Checking log directory and files.');
+if (!fs.existsSync(LOG_PATH)){
+    console.log('Creating Log directory')
+    fs.mkdirSync(LOG_PATH);
+}
+
+//Add to log that you started and check if log exists
+function createLogs(path){
+    fs.stat(path, function(err, stat){
+    if(err == null){
+      displayInfo('Authenticating reminderBot services.');
+    }else if(err.code == 'ENOENT') {
+      // file does not exist
+      fs.writeFile(path, '',function(err){
+          if(err){console.error(err); return err;}
+          displayInfo('Created '+path)
+      });
+    } else {
+        console.log('[ERROR] Some other error: ', err.code);
+    }
+  });
+}
+
+createLogs(LOG_PATH+LOG_FILE);
+createLogs(LOG_PATH+LOG_LAST_USE);
+
 // Load client secrets from a local file.
 fs.readFile('client_secret.json', function processClientSecrets(err, content) {
     if (err) {
-      console.log('[ERROR] Error loading client secret file: ' + err);
-      console.log('        Make sure you downloaded the correct secret file and you renamed it to client_secret.json');
+      displayInfo('[ERROR] Error loading client secret file: ' + err);
+      displayInfo('        Make sure you downloaded the correct secret file and you renamed it to client_secret.json');
       return;
     }
     // Authorize a client with the loaded credentials, then call the
     // Gmail API.
-    authorize(JSON.parse(content), function(err){
-        if(err){
-            console.log("[SUCCESS] Authentication Token Successfully created!");
-        }
+    authorize(JSON.parse(content), function(){
+        displayInfo("[SUCCESS] reminderBot Authentication completed successfully.")
     });
 });
 
@@ -38,10 +88,13 @@ function authorize(credentials, callback) {
     // Check if we have previously stored a token.
     fs.readFile(TOKEN_PATH, function(err, token) {
         if (err) {
-        console.log("[WARNING] Authentication Token not yet created. Creating Now.");
-        getNewToken(oauth2Client, callback);
-        } else {
-        console.log("[SUCCESS] Authentication Token already created on system.");
+        displayInfo("[WARNING] Authentication Token not yet created. Creating Now.");
+        try{
+            getNewToken(oauth2Client, callback);displayInfo('[SUCCESS] Authentication Token Successfully created!');
+        } catch(err) {
+            displayInfo('[ERROR] Failture to create Tolken!');
+        }}else{
+        displayInfo("[SUCCESS] Authentication Token already created on system.");
         oauth2Client.credentials = JSON.parse(token);
         callback(oauth2Client);
         }
@@ -61,7 +114,7 @@ function getNewToken(oauth2Client, callback) {
         access_type: 'offline',
         scope: SCOPES
     });
-    console.log('Authorize this app by visiting this url: ', authUrl);
+    displayInfo('Authorize this app by visiting this url: ', authUrl);
     var rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
@@ -70,10 +123,10 @@ function getNewToken(oauth2Client, callback) {
         rl.close();
         oauth2Client.getToken(code, function(err, token) {
         if (err) {
-            console.log('[ERROR] Error while trying to retrieve access token! ', err);
+            displayInfo('[ERROR] Error while trying to retrieve access token! ', err);
             return;
         }
-        console.log('[SUCCESS] Successfully retrieved access token');
+        displayInfo('[SUCCESS] Successfully retrieved access token');
         oauth2Client.credentials = token;
         storeToken(token);
         callback(oauth2Client);
@@ -95,5 +148,5 @@ function storeToken(token) {
         }
     }
     fs.writeFile(TOKEN_PATH, JSON.stringify(token));
-    console.log('[SUCCESS] Token stored to ' + TOKEN_PATH);
+    displayInfo('[SUCCESS] Token stored to ' + TOKEN_PATH);
 }
