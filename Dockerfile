@@ -7,8 +7,10 @@ WORKDIR /usr/local/src
 COPY package.json /usr/local/src/package.json
 RUN npm install
 
-COPY AirtableApp.js /usr/local/src/AirtableApp.js
+COPY app.js /usr/local/src/app.js
+COPY authenticate.js /usr/local/src/authenticate.js
 COPY AirtableAPIkey.key /usr/local/src/AirtableAPIkey.key
+COPY client_secret.json /usr/local/src/client_secret.json
 
 RUN npm --version
 
