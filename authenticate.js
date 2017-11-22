@@ -1,7 +1,7 @@
 var app_info        = require('./package.json');  
 var fs              = require('fs');                    //give access to files to avoid posting your API key and client-secret (google)
 var readline        = require('readline');              //needed for google-Auth
-var google          = require('googleapis');            //google api module
+//var google          = require('googleapis');            //google api module
 var googleAuth      = require('google-auth-library');    //google authentication module to use your own gmail account
 var date            = require('date-and-time');
 
@@ -48,7 +48,7 @@ if (!fs.existsSync(LOG_PATH)){
 function createLogs(path){
     fs.stat(path, function(err, stat){
     if(err == null){
-      displayInfo('Authenticating reminderBot services.');
+      displayInfo('Authenticating reminderBot services on ->' + path);
     }else if(err.code == 'ENOENT') {
       // file does not exist
       fs.writeFile(path, '',function(err){

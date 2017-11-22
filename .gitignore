@@ -1,9 +1,10 @@
 # no incomplete file and useless files for the user
-dev/
+# dev/
 bin/
 
 # Node stuff
 node_modules/
+package-lock.json
 
 # The private stuff
 data/
