@@ -1,5 +1,5 @@
 FROM node:9
-MAINTAINER michmich112
+LABEL maintainer="https://github.com/michmich112"
 
 ENV NODE ENV=development
 WORKDIR /usr/local/src
