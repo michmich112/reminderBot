@@ -21,6 +21,7 @@ var LOG_LAST_USE = "lastUse.log";
 
 var base = undefined;
 
+// <------- LOG FUNCTIONS ------->
 //function to add line to log (Async operation)
 function addToLog(message){
   var now = new Date();
@@ -45,6 +46,7 @@ function displayError(err){
   console.error(err);
 }
 
+// <------- GOOGLE API AUTHENTICATION AND METHODS ------->
 //---> Google API authentication
 function authenticateAndSend(to, from, subject, message, data){
   fs.readFile('client_secret.json', function processClientSecrets(err, content) { // Load client secrets from a local file.
@@ -75,28 +77,6 @@ function authenticateAndSend(to, from, subject, message, data){
   });
   });
 }
-
-//---> Airtable Authentication
-function main(){
-  fs.readFile('AirtableAPIkey.key', function conf(err,key){ //create a file AirtableAPIkey.key
-    Airtable.configure({
-        endpointUrl: 'https://api.airtable.com',
-        apiKey: key
-    });
-    base = Airtable.base('appGh7ESCOFPw5h8R'); //this is the base ID of your airtable Base
-    try{
-      base('Rental Sign Out').select({
-        view: "Main View"
-      }).eachPage(function page(records){
-        overdue(base,records,sendMessages);
-      });
-    }catch(err){
-      displayError("[ERROR] Check API key.");
-      console.error(err);
-    }
-  });
-}
-
 
 //--->Google API main functions
 //Create an OAuth2 client with the given credentials, and then execute the given callback function.
@@ -160,20 +140,6 @@ function storeToken(token) {
   displayInfo('[SUCCESS] Token stored to ' + TOKEN_PATH);
 }
 
-function makeBody(to, from, subject, message) {
-    var str = ["Content-Type: text/plain; charset=\"UTF-8\"\n",
-        "MIME-Version: 1.0\n",
-        "Content-Transfer-Encoding: 7bit\n",
-        "to: ", to, "\n",
-        "from: ", from, "\n",
-        "subject: ", subject, "\n\n",
-        message
-    ].join('');
-
-    var encodedMail = new Buffer(str).toString("base64").replace(/\+/g, '-').replace(/\//g, '_');
-        return encodedMail;
-}
-
 //---> Airtable main Functions
 function overdue(base,records,callback){
   var people = [];
@@ -189,11 +155,12 @@ function overdue(base,records,callback){
   callback(base,people);
 }
 
-function sendMessages(base,names){ //Constructs and sends the message
+// <------- MESSAGE METHODS ------->
+//Constructs and sends the message
+function sendMessages(base,names){
   names.forEach(function(value){
       var person = base('Members').find(value.Name,(function(err, record){
           if (err) { displayError(err)}
-          //displayInfo("in");
           value.Name = record.get('Name');
           value.Email = record.get('Email');
           constructMessage(base,value);
@@ -201,13 +168,15 @@ function sendMessages(base,names){ //Constructs and sends the message
   });
 }
 
-function constructMessage(base,data){ //construct the message
+///construct the message
+function constructMessage(base,data){
   var partA = "Hi " + data.Name + ",\nThis is The Factory. The Following item(s) that you have rented are now overdue: ";
   var partB = " (due on " + data.Due + " ). Please return it or reply to this message if you want to continue using it.\nNote that due to limited stock we may ask you to bring it back regardless if other people wish to use it.\nBest,\nThe Factory Management Team";
   addObjects(partA,partB,data);
 }
 
-function addObjects(partA,partB,data){ //adding the Equipment rented to the e-mail
+//adding the Equipment rented to the e-mail (problems using callbacks and promises)
+function addObjects(partA,partB,data){ 
   var obj = data.Object;
   if(obj.length == 0){
       var message = partA + partB;
@@ -225,4 +194,82 @@ function addObjects(partA,partB,data){ //adding the Equipment rented to the e-ma
   }
 }
 
-main();
+//make the body of the message to send 
+function makeBody(to, from, subject, message) {
+  var str = ["Content-Type: text/plain; charset=\"UTF-8\"\n",
+      "MIME-Version: 1.0\n",
+      "Content-Transfer-Encoding: 7bit\n",
+      "to: ", to, "\n",
+      "from: ", from, "\n",
+      "subject: ", subject, "\n\n",
+      message
+  ].join('');
+
+  var encodedMail = new Buffer(str).toString("base64").replace(/\+/g, '-').replace(/\//g, '_');
+      return encodedMail;
+}
+
+//---> Airtable Authentication
+function main(){
+  fs.readFile('AirtableAPIkey.key', function conf(err,key){ //create a file AirtableAPIkey.key
+    Airtable.configure({
+        endpointUrl: 'https://api.airtable.com',
+        apiKey: key
+    });
+    base = Airtable.base('appGh7ESCOFPw5h8R'); //this is the base ID of your airtable Base
+    try{
+      base('Rental Sign Out').select({
+        view: "Main View"
+      }).eachPage(function page(records){
+        overdue(base,records,sendMessages);
+      });
+    }catch(err){
+      displayError("[ERROR] Check API key.");
+      console.error(err);
+    }
+  });
+}
+
+// Makes the server run for ever every n minute/hour/day... (customizable)
+async.forever(function(next){
+  fs.readFile('./.logs/lastUse.log','utf8', function read(err, data) {
+      if (err) {
+          console.log(err);
+          next("[ERROR] There was an error trying to read from file ")
+          return err;
+      }
+      if(data == ''){
+          fs.writeFile('./.logs/lastUse.log', date.format(new Date(), 'YYYY/MM/DD HH:mm'), function(err,data){
+              if(err){
+                  console.log(err);
+                  next("[ERROR] There was an error writing to file ");
+                  return err;
+              }
+              console.log('Added to ./.logs/lastUse.log');
+              next();
+          });
+      }else{
+          var past = date.parse(data,'YYYY/MM/DD HH:mm');
+          var prime = date.addMinutes(past,1);
+          var ayo = date.subtract(prime,new Date()).toMilliseconds();
+          if(ayo <= 0){
+              var now = new Date();
+              fs.writeFile('./.logs/lastUse.log', date.format(now, 'YYYY/MM/DD HH:mm'), function(err,data){
+                  if(err){
+                      console.log(err);
+                      next("[ERROR] There was an error writing the new time");
+                      return err;
+                  }
+                  // Runs the main function
+                  main();
+                  next();
+              });
+          }else{
+              next();
+          }
+      }
+  });
+},function(err){
+  console.log('ERROR');
+  console.error(err);
+});
