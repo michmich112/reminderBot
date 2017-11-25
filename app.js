@@ -6,6 +6,7 @@ var googleAuth      = require('google-auth-library');    //google authentication
 var Airtable        = require('airtable');              //airtable api to access the database
 var date            = require('date-and-time');
 var async           = require('async');
+var color           = require('colors')
 
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/gmail-nodejs-reminderBot.json or run clean.sh
@@ -59,7 +60,7 @@ function createLogs(path){
           displayInfo('Created '+path)
       });
     } else {
-        console.log('[ERROR] Some other error: ', err.code);
+        console.log('[ERROR]'.red + ' Some other error: ', err.code);
     }
   });
 }
@@ -78,14 +79,14 @@ function authFileSystem(){
   // Load client secrets from a local file.
   fs.readFile('client_secret.json', function processClientSecrets(err, content) {
       if (err) {
-        displayInfo('[ERROR] Error loading client secret file: ' + err);
+        displayInfo('[ERROR]'.red + ' Error loading client secret file: ' + err);
         displayInfo('        Make sure you downloaded the correct secret file and you renamed it to client_secret.json');
         return;
       }
       // Authorize a client with the loaded credentials, then call the
       // Gmail API.
       authorize(JSON.parse(content), function(){
-        displayInfo("[SUCCESS] reminderBot Authentication completed successfully.")
+        displayInfo('[SUCCESS]'.green + ' reminderBot Authentication completed successfully.')
         serverLoop();
       });
   });
@@ -96,7 +97,7 @@ function authFileSystem(){
 function authenticateAndSend(to, from, subject, message, data){
   fs.readFile('client_secret.json', function processClientSecrets(err, content) { // Load client secrets from a local file.
     if (err) {
-      displayInfo('[ERROR] Error loading client secret file: ' + err);
+      displayInfo('[ERROR]'.red + ' Error loading client secret file: ' + err);
       displayInfo('        Make sure you downloaded the correct secret file and you renamed it to client_secret.json');
       return;
     }
@@ -113,10 +114,10 @@ function authenticateAndSend(to, from, subject, message, data){
           }
       }, function(err, res) {
           if(err){
-              displayInfo('[ERROR] Mail failed to send to '+data.Name+' at '+data.Email+'. Details: '+err);
+              displayInfo('[ERROR]'.red + ' Mail failed to send to '+data.Name+' at '+data.Email+'. Details: '+err);
               return;
           }else{
-              displayInfo('[SUCCESS] Mail Successfully sent to '+data.Email+'. Mail id: '+res.id);
+              displayInfo('[SUCCESS]'.green + ' Mail Successfully sent to '+data.Email+'. Mail id: '+res.id);
           }
       });
   });
@@ -135,10 +136,10 @@ function authorize(credentials, callback) {
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, function(err, token) {
     if (err) {
-      displayInfo("[WARNING] Authentication Token not yet created. Creating Now.");
+      displayInfo('[WARNING]'.yellow  + ' Authentication Token not yet created. Creating Now.');
       getNewToken(oauth2Client, callback);
     } else {
-      displayInfo("[SUCCESS] Authentication Token already created on system.");
+      displayInfo('[SUCCESS]'.green  + ' Authentication Token already created on system.');
       oauth2Client.credentials = JSON.parse(token);
       callback(oauth2Client);
     }
@@ -160,11 +161,11 @@ function getNewToken(oauth2Client, callback) {
     rl.close();
     oauth2Client.getToken(code, function(err, token) {
       if (err) {
-        displayInfo('[ERROR] Error while trying to retrieve access token! ');
+        displayInfo('[ERROR]'.red + ' Error while trying to retrieve access token! ');
         displayError(err);
         return;
       }
-      displayInfo('[SUCCESS] Successfully retrieved access token');
+      displayInfo('[SUCCESS]'.green +  'Successfully retrieved access token');
       oauth2Client.credentials = token;
       storeToken(token);
       callback(oauth2Client);
@@ -182,7 +183,7 @@ function storeToken(token) {
     }
   }
   fs.writeFile(TOKEN_PATH, JSON.stringify(token));
-  displayInfo('[SUCCESS] Token stored to ' + TOKEN_PATH);
+  displayInfo('[SUCCESS]'.green + ' Token stored to ' + TOKEN_PATH);
 }
 
 //---> Airtable main Functions
@@ -269,7 +270,7 @@ function main(){
         overdue(base,records,sendMessages);
       });
     }catch(err){
-      displayError("[ERROR] Check API key.");
+      displayError('[ERROR]'.red + ' Check API key.');
       console.error(err);
     }
   });
@@ -281,14 +282,14 @@ function serverLoop(){
     fs.readFile('./.logs/lastUse.log','utf8', function read(err, data) {
         if (err) {
             console.log(err);
-            next("[ERROR] There was an error trying to read from file ")
+            next('[ERROR]'.red + ' There was an error trying to read from file ')
             return err;
         }
         if(data == ''){
             fs.writeFile('./.logs/lastUse.log', date.format(new Date(), 'YYYY/MM/DD HH:mm'), function(err,data){
                 if(err){
                     console.log(err);
-                    next("[ERROR] There was an error writing to file ");
+                    next('[ERROR]'.red + ' There was an error writing to file ');
                     return err;
                 }
                 console.log('Added to ./.logs/lastUse.log');
@@ -303,7 +304,7 @@ function serverLoop(){
                 fs.writeFile('./.logs/lastUse.log', date.format(now, 'YYYY/MM/DD HH:mm'), function(err,data){
                     if(err){
                         console.log(err);
-                        next("[ERROR] There was an error writing the new time");
+                        next('[ERROR]'.red + ' There was an error writing the new time');
                         return err;
                     }
                     // Runs the main function
