@@ -46,6 +46,51 @@ function displayError(err){
   console.error(err);
 }
 
+// <------- General Filesystem Authentication ------->
+//Add to log that you started and check if log exists
+function createLogs(path){
+  fs.stat(path, function(err, stat){
+    if(err == null){
+      displayInfo('Authenticating reminderBot services on ->' + path);
+    }else if(err.code == 'ENOENT') {
+      // file does not exist
+      fs.writeFile(path, '',function(err){
+          if(err){console.error(err); return err;}
+          displayInfo('Created '+path)
+      });
+    } else {
+        console.log('[ERROR] Some other error: ', err.code);
+    }
+  });
+}
+
+function authFileSystem(){
+  //create dir for logs and file for logs
+  console.log('Checking log directory and files.');
+  if (!fs.existsSync(LOG_PATH)){
+      console.log('Creating Log directory')
+      fs.mkdirSync(LOG_PATH);
+  }
+
+  createLogs(LOG_PATH+LOG_FILE);
+  createLogs(LOG_PATH+LOG_LAST_USE);
+
+  // Load client secrets from a local file.
+  fs.readFile('client_secret.json', function processClientSecrets(err, content) {
+      if (err) {
+        displayInfo('[ERROR] Error loading client secret file: ' + err);
+        displayInfo('        Make sure you downloaded the correct secret file and you renamed it to client_secret.json');
+        return;
+      }
+      // Authorize a client with the loaded credentials, then call the
+      // Gmail API.
+      authorize(JSON.parse(content), function(){
+        displayInfo("[SUCCESS] reminderBot Authentication completed successfully.")
+        serverLoop();
+      });
+  });
+}
+
 // <------- GOOGLE API AUTHENTICATION AND METHODS ------->
 //---> Google API authentication
 function authenticateAndSend(to, from, subject, message, data){
@@ -231,45 +276,49 @@ function main(){
 }
 
 // Makes the server run for ever every n minute/hour/day... (customizable)
-async.forever(function(next){
-  fs.readFile('./.logs/lastUse.log','utf8', function read(err, data) {
-      if (err) {
-          console.log(err);
-          next("[ERROR] There was an error trying to read from file ")
-          return err;
-      }
-      if(data == ''){
-          fs.writeFile('./.logs/lastUse.log', date.format(new Date(), 'YYYY/MM/DD HH:mm'), function(err,data){
-              if(err){
-                  console.log(err);
-                  next("[ERROR] There was an error writing to file ");
-                  return err;
-              }
-              console.log('Added to ./.logs/lastUse.log');
-              next();
-          });
-      }else{
-          var past = date.parse(data,'YYYY/MM/DD HH:mm');
-          var prime = date.addMinutes(past,1);
-          var ayo = date.subtract(prime,new Date()).toMilliseconds();
-          if(ayo <= 0){
-              var now = new Date();
-              fs.writeFile('./.logs/lastUse.log', date.format(now, 'YYYY/MM/DD HH:mm'), function(err,data){
-                  if(err){
-                      console.log(err);
-                      next("[ERROR] There was an error writing the new time");
-                      return err;
-                  }
-                  // Runs the main function
-                  main();
-                  next();
-              });
-          }else{
-              next();
-          }
-      }
+function serverLoop(){
+  async.forever(function(next){
+    fs.readFile('./.logs/lastUse.log','utf8', function read(err, data) {
+        if (err) {
+            console.log(err);
+            next("[ERROR] There was an error trying to read from file ")
+            return err;
+        }
+        if(data == ''){
+            fs.writeFile('./.logs/lastUse.log', date.format(new Date(), 'YYYY/MM/DD HH:mm'), function(err,data){
+                if(err){
+                    console.log(err);
+                    next("[ERROR] There was an error writing to file ");
+                    return err;
+                }
+                console.log('Added to ./.logs/lastUse.log');
+                next();
+            });
+        }else{
+            var past = date.parse(data,'YYYY/MM/DD HH:mm');
+            var prime = date.addMinutes(past,1);
+            var ayo = date.subtract(prime,new Date()).toMilliseconds();
+            if(ayo <= 0){
+                var now = new Date();
+                fs.writeFile('./.logs/lastUse.log', date.format(now, 'YYYY/MM/DD HH:mm'), function(err,data){
+                    if(err){
+                        console.log(err);
+                        next("[ERROR] There was an error writing the new time");
+                        return err;
+                    }
+                    // Runs the main function
+                    main();
+                    next();
+                });
+            }else{
+                next();
+            }
+        }
+    });
+  },function(err){
+    console.log('ERROR');
+    console.error(err);
   });
-},function(err){
-  console.log('ERROR');
-  console.error(err);
-});
+}
+
+authFileSystem();

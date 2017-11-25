@@ -38,13 +38,6 @@ function displayInfo(info){
   console.log(info);
 }
 
-//create dir for logs and file for logs
-console.log('Checking log directory and files.');
-if (!fs.existsSync(LOG_PATH)){
-    console.log('Creating Log directory')
-    fs.mkdirSync(LOG_PATH);
-}
-
 //Add to log that you started and check if log exists
 function createLogs(path){
     fs.stat(path, function(err, stat){
@@ -60,6 +53,13 @@ function createLogs(path){
         console.log('[ERROR] Some other error: ', err.code);
     }
   });
+}
+
+//create dir for logs and file for logs
+console.log('Checking log directory and files.');
+if (!fs.existsSync(LOG_PATH)){
+    console.log('Creating Log directory')
+    fs.mkdirSync(LOG_PATH);
 }
 
 createLogs(LOG_PATH+LOG_FILE);

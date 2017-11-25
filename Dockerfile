@@ -14,5 +14,4 @@ COPY client_secret.json /usr/local/src/client_secret.json
 
 RUN npm --version
 
-EXPOSE 3000
-CMD [ "npm", "start"]
+CMD ["npm" , "start"]
