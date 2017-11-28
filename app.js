@@ -293,6 +293,7 @@ function serverLoop(){
                     return err;
                 }
                 console.log('Added to ./.logs/lastUse.log');
+                main(); //run the program on start with empty .logs/lastUSe.log
                 next();
             });
         }else{
