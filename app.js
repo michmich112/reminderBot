@@ -105,22 +105,24 @@ function authenticateAndSend(to, from, subject, message, data){
     // Gmail API.
     authorize(JSON.parse(content), function (auth) {
       var gmail = google.gmail('v1');
-      var raw = makeBody('thefactory@mcgilleus.ca', 'thefactory@mcgilleus.ca', subject, message); //Change this when done to send correct e-mails
-      gmail.users.messages.send({
+      gmail.users.getProfile({auth:auth, userId:'me'},function(err, res){
+        var raw = makeBody('thefactory@mcgilleus.ca', res.emailAdress, subject, message); //Change this when done to send correct e-mails
+        gmail.users.messages.send({
           auth: auth,
           userId: 'me',
           resource: {
               raw: raw
           }
-      }, function(err, res) {
+        }, function(err, res) {
           if(err){
               displayInfo('[ERROR]'.red + ' Mail failed to send to '+data.Name+' at '+data.Email+'. Details: '+err);
               return;
           }else{
               displayInfo('[SUCCESS]'.green + ' Mail Successfully sent to '+data.Email+'. Mail id: '+res.id);
           }
+        });
       });
-  });
+    });
   });
 }
 
@@ -298,7 +300,7 @@ function serverLoop(){
             });
         }else{
             var past = date.parse(data,'YYYY/MM/DD HH:mm');
-            var prime = date.addMinutes(past,1);
+            var prime = date.addDays(past,1);
             var ayo = date.subtract(prime,new Date()).toMilliseconds();
             if(ayo <= 0){
                 var now = new Date();
