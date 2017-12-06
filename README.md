@@ -1,12 +1,13 @@
-# reminderBot [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/dwyl/esta/issues)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/dwyl/esta/issues)
+# reminderBot
 
 Automatically send e-mail based on info provided by an airtable base. In this code, if an item is *OVERDUE* send an e-mail reminding the individual to renew the lease or bring it back to the lab.
 
-Uses Node.js and the following APIs: Gmail API [![npm version](https://badge.fury.io/js/googleapis.svg)](https://badge.fury.io/js/googleapis), Airtable API [![npm version](https://badge.fury.io/js/airtable.svg)](https://badge.fury.io/js/airtable)
+Uses Node.js and the following APIs: [Gmail API](https://developers.google.com/gmail/api/), [Airtable API](https://airtable.com/api)
 
 ## Installation
 
-Requires Node.js >= 9.0.0 and npm [![npm version](https://badge.fury.io/js/npm.svg)](https://badge.fury.io/js/npm).
+Requires Node.js >= 9.0.0 and npm >= 5.5.0 .
 
 To install run:
 
@@ -33,8 +34,8 @@ First start by cloning the files, adding the `client_secret.json` file containin
 ```
 $ git clone https://github.com/michmich112/reminderBot.git
 $ cd reminderBot/
-$ mv ~/Downloads/client_secret.json .
-$ docker build . -t remindebot
+$ mv <path_to_client_secret.json>/client_secret.json .
+$ docker build . -t reminderbot
 ```
 
 
