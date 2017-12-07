@@ -265,11 +265,12 @@ function main(){
         apiKey: key
     });
     base = Airtable.base('appGh7ESCOFPw5h8R'); //this is the base ID of your airtable Base
+    //Anything past here will be authenticated by Airtable and you will be able to extract data from your base
     try{
       base('Rental Sign Out').select({
         view: "Main View"
       }).eachPage(function page(records){
-        overdue(base,records,sendMessages);
+        overdue(base,records,sendMessages); //This function is the one you want to execute / you can change it but leave it in its' place 
       });
     }catch(err){
       displayError('[ERROR]'.red + ' Check API key.');
