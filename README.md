@@ -31,7 +31,9 @@ and the service will start up.
 ## Docker
 
 The service can be fully run and managed on the Docker platform.
+
 To run the service on a docker container, be sure to properly set-up and configure the service before continuing.
+
 We will assume that everything has been configured like in the Configuration section.
 
 ```
@@ -40,16 +42,22 @@ $ docker build . -t reminderbot
 $ docker run -i reminderbot:latest
 ```
 This will prompt you to authenticate the newly created container using your Google Account.
+
 Once authenticated, the service will start. You can just stop the container by pressing `Ctrl + c` and then restarting it in detached mode via `docker start <container name>`.
 
 
 ## Configuration
 
-Configuration will come once the service is finished
-As this service is currently only made for one specific use, the modulation is pretty low (i.e. pretty annoying to adapt it to your use). A fully modulable version is in the works and should be much easier to use. 
+As this service is currently only made for one specific case, the modulation is pretty low (i.e. pretty annoying to adapt it to your use). A fully modulable version is in the works and should be much easier to customise.
+
 Here are a few helpful notes to get started with this project:
+
 -> Start by getting an API Key/ client secret on the [google developper console](https://console.developers.google.com/start/api?id=gmail). You can find detailed steps on how to get the API key [here](https://developers.google.com/gmail/api/quickstart/nodejs) Download the json file, rename it to `client_secret.json` and move it to the reminderbot folder.
+
 -> Get your [Airtable API key](https://airtable.com/api) and put it in a file named AirtableAPIkey.key
+
 -> Take note of your Airtable Base number/UUID and change the one thats on line 267 of app.js
+
 -> Anything in the main function under line 267 is fully customizable and is where you do you. currently the function `overdue (base, records, callback)` is the only one being used.
+
 -> customize your own functions 
