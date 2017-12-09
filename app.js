@@ -200,7 +200,11 @@ function overdue(base,records,callback){
           }
       }
   });
-  callback(base,people);
+  if (people == []){
+    displayInfo('[INFO]'.blue + ' No overdue items');
+  }else{
+    callback(base,people);
+  }
 }
 
 // <------- MESSAGE METHODS ------->
