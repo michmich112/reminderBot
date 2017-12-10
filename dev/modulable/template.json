@@ -1,0 +1,21 @@
+{
+ "Airtable_Data" : {
+  "base1" : {
+   "table1": ["data1" , "data2" ... ],
+   "table2": ["data1" , "data2" ... ],
+   ...
+  },
+  "base2" : {
+   "table1": ["data1" , "data2" ... ],
+   "table2": ["data1" , "data2" ... ],
+   ...
+  }
+ },
+ "Message" : {
+  "hello this is %base1.table1.data1% you owe 5/%. best"
+ }
+}
+
+#other reserved words. -> can be set
+user.emailAdress
+user.name

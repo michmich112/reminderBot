@@ -1,0 +1,12 @@
+{
+ "Airtable_Data" : {
+  "base1" : {
+   "table11" : ["this","that"],
+   "table12" : ["this too", "that also"]
+  },
+  "base2" : {
+   "table21" : ["this","that"],
+   "table22" : ["this too", "that also"]
+  }
+ }
+}

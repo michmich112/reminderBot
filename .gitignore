@@ -17,5 +17,6 @@ log/
 *.log
 
 # temp stuff
+./tests
 tmp/
 *.tmp
