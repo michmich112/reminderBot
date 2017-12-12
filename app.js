@@ -6,8 +6,8 @@ var googleAuth      = require('google-auth-library');    //google authentication
 var Airtable        = require('airtable');              //airtable api to access the database
 var date            = require('date-and-time');
 var async           = require('async');
-var color           = require('colors')
-var timer           = require('setinterval-plus');
+var color           = require('colors');
+var _setInterval    = require('setinterval-plus');
 
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/gmail-nodejs-reminderBot.json or run clean.sh
@@ -88,7 +88,8 @@ function authFileSystem(){
       // Gmail API.
       authorize(JSON.parse(content), function(){
         displayInfo('[SUCCESS]'.green + ' reminderBot Authentication completed successfully.')
-        var server = new timer(serverLoop(),86400000);
+        serverLoop(); //have to run it once on startup
+        var server = new _setInterval(function (){console.log('in'); serverLoop();},86400000);
       });
   });
 }
