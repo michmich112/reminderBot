@@ -7,6 +7,7 @@ var Airtable        = require('airtable');              //airtable api to access
 var date            = require('date-and-time');
 var async           = require('async');
 var color           = require('colors')
+var timer           = require('setinterval-plus');
 
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/gmail-nodejs-reminderBot.json or run clean.sh
@@ -87,14 +88,14 @@ function authFileSystem(){
       // Gmail API.
       authorize(JSON.parse(content), function(){
         displayInfo('[SUCCESS]'.green + ' reminderBot Authentication completed successfully.')
-        serverLoop();
+        var server = new timer(serverLoop(),86400000);
       });
   });
 }
 
 // <------- GOOGLE API AUTHENTICATION AND METHODS ------->
 //---> Google API authentication
-function authenticateAndSend(to, from, subject, message, data){
+function authenticateAndSend(to, subject, message, data){
   fs.readFile('client_secret.json', function processClientSecrets(err, content) { // Load client secrets from a local file.
     if (err) {
       displayInfo('[ERROR]'.red + ' Error loading client secret file: ' + err);
@@ -106,7 +107,7 @@ function authenticateAndSend(to, from, subject, message, data){
     authorize(JSON.parse(content), function (auth) {
       var gmail = google.gmail('v1');
       gmail.users.getProfile({auth:auth, userId:'me'},function(err, res){
-        var raw = makeBody('thefactory@mcgilleus.ca', res.emailAdress, subject, message); //Change this when done to send correct e-mails
+        var raw = makeBody( to , res.emailAdress, subject, message); //Change this when done to send correct e-mails
         gmail.users.messages.send({
           auth: auth,
           userId: 'me',
@@ -233,7 +234,7 @@ function addObjects(partA,partB,data){
   if(obj.length == 0){
       var message = partA + partB;
       displayInfo('Attempting to send an e-mail to '+data.Name+' at '+data.Email);
-      authenticateAndSend('test','test','Rental Equipment Overdue', data.Email + message,data) //remode data.Email when ready to send correct e-mails
+      authenticateAndSend(data.Email,'Rental Equipment Overdue', message,data) //remode data.Email when ready to send correct e-mails
   }else{
       base('Rental Inventory').find(obj.shift(),function(err, object){
           //just to have nice commas
@@ -285,45 +286,39 @@ function main(){
 
 // Makes the server run for ever every n minute/hour/day... (customizable)
 function serverLoop(){
-  async.forever(function(next){
-    fs.readFile('./.logs/lastUse.log','utf8', function read(err, data) {
-        if (err) {
-            console.log(err);
-            next('[ERROR]'.red + ' There was an error trying to read from file ')
-            return err;
+  fs.readFile('./.logs/lastUse.log','utf8', function read(err, data) {
+    if (err) {
+      console.log(err);
+      displayError('[ERROR]'.red + ' There was an error trying to read from file ')
+      return err;
+    }
+    if(data == ''){
+      fs.writeFile('./.logs/lastUse.log', date.format(new Date(), 'YYYY/MM/DD HH:mm'), function(err,data){
+        if(err){
+          console.log(err);
+          displayError('[ERROR]'.red + ' There was an error writing to file ');
+          return err;
         }
-        if(data == ''){
-            fs.writeFile('./.logs/lastUse.log', date.format(new Date(), 'YYYY/MM/DD HH:mm'), function(err,data){
-                if(err){
-                    console.log(err);
-                    next('[ERROR]'.red + ' There was an error writing to file ');
-                    return err;
-                }
-                console.log('Added to ./.logs/lastUse.log');
-                main(); //run the program on start with empty .logs/lastUSe.log
-                next();
-            });
-        }else{
-            var past = date.parse(data,'YYYY/MM/DD HH:mm');
-            var prime = date.addDays(past,1);
-            var ayo = date.subtract(prime,new Date()).toMilliseconds();
-            if(ayo <= 0){
-                var now = new Date();
-                fs.writeFile('./.logs/lastUse.log', date.format(now, 'YYYY/MM/DD HH:mm'), function(err,data){
-                    if(err){
-                        console.log(err);
-                        next('[ERROR]'.red + ' There was an error writing the new time');
-                        return err;
-                    }
-                    // Runs the main function
-                    main();
-                    next();
-                });
-            }else{
-                next();
-            }
-        }
-    });
+        console.log('Added to ./.logs/lastUse.log');
+        main(); //run the program on start with empty .logs/lastUSe.log
+      });
+    }else{
+      var past = date.parse(data,'YYYY/MM/DD HH:mm');
+      var prime = date.addDays(past,1);
+      var ayo = date.subtract(prime,new Date()).toMilliseconds();
+      if(ayo <= 0){
+        var now = new Date();
+        fs.writeFile('./.logs/lastUse.log', date.format(now, 'YYYY/MM/DD HH:mm'), function(err,data){
+          if(err){
+              console.log(err);
+              displayError('[ERROR]'.red + ' There was an error writing the new time');
+              return err;
+          }
+          // Runs the main function
+          main();
+        });
+      }
+    }
   },function(err){
     console.log('ERROR');
     console.error(err);
