@@ -28,9 +28,8 @@ var base = undefined;
 function addToLog(message){
   var now = new Date();
   try{
-    fs.appendFile(LOG_PATH + LOG_FILE, '[' + date.format(now, 'YYYY/MM/DD HH:mm:ss:SSS') +']-> ' + message+'\n', function (err){
+    fs.appendFile(LOG_PATH + LOG_FILE, message +'\n', function (err){
       if(err){console.error(err); return(err);}
-      //we could add a console output here but it would only add too much info on the terminal
     });
   }catch(err){
     throw(err);
@@ -39,13 +38,15 @@ function addToLog(message){
 
 //Making sure that what is displayed goes into the log
 function displayInfo(info){
-  addToLog(info);
-  console.log(info);
+  var msg = '[' + date.format(now, 'YYYY/MM/DD HH:mm:ss:SSS') +']-> ' + info;
+  addToLog(msg);
+  console.log(msg);
 }
 
 function displayError(err){
-  addToLog(err);
-  console.error(err);
+  var msg = '[' + date.format(now, 'YYYY/MM/DD HH:mm:ss:SSS') +']-> ' + err;
+  addToLog(msg);
+  console.error(msg);
 }
 
 // <------- General Filesystem Authentication ------->
@@ -89,7 +90,7 @@ function authFileSystem(){
       authorize(JSON.parse(content), function(){
         displayInfo('[SUCCESS]'.green + ' reminderBot Authentication completed successfully.')
         serverLoop(); //have to run it once on startup
-        var server = new _setInterval(function (){console.log('in'); serverLoop();},86400000);
+        var server = new _setInterval(function (){serverLoop();},86400000);
       });
   });
 }
