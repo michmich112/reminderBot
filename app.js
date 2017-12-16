@@ -26,7 +26,6 @@ var base = undefined;
 // <------- LOG FUNCTIONS ------->
 //function to add line to log (Async operation)
 function addToLog(message){
-  var now = new Date();
   try{
     fs.appendFile(LOG_PATH + LOG_FILE, message +'\n', function (err){
       if(err){console.error(err); return(err);}
@@ -38,13 +37,13 @@ function addToLog(message){
 
 //Making sure that what is displayed goes into the log
 function displayInfo(info){
-  var msg = '[' + date.format(now, 'YYYY/MM/DD HH:mm:ss:SSS') +']-> ' + info;
+  var msg = '[' + date.format(new Date(), 'YYYY/MM/DD HH:mm:ss:SSS') +']-> ' + info;
   addToLog(msg);
   console.log(msg);
 }
 
 function displayError(err){
-  var msg = '[' + date.format(now, 'YYYY/MM/DD HH:mm:ss:SSS') +']-> ' + err;
+  var msg = '[' + date.format(new Date(), 'YYYY/MM/DD HH:mm:ss:SSS') +']-> ' + err;
   addToLog(msg);
   console.error(msg);
 }
